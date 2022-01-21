@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (openocd)",
+            "type": "cortex-debug",
+            "cwd": "${workspaceRoot}",
+            "request": "launch",
+            "executable": "./build/simple_led.elf",
+            "servertype": "openocd",
+            "interface": "swd",
+            "runToEntryPoint": "main",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f4x.cfg"
+            ],
+            "svdFile": "${workspaceFolder}/STM32F411.svd",
+        },
+        {
+            "name": "Debug (pyocd)",
+            "type": "cortex-debug",
+            "cwd": "${workspaceRoot}",
+            "request": "launch",
+            "executable": "./build/simple_led.elf",
+            "servertype": "pyocd",
+            "showDevDebugOutput": true,
+            "interface": "swd",
+            "serverpath": "/usr/local/opt/python@3.10/Frameworks/Python.framework/Versions/3.10/bin/pyocd",
+            "device": "stm32f411",
+            "runToEntryPoint": "main",
+            "runToMain": true,
+            "svdFile": "${workspaceFolder}/STM32F411.svd",
+            // NOTE: These are super important to get proper line-by-line debugging
+            "serverArgs": [
+                "--target",
+                "stm32f411ce"
+            ]
+        }
+    ]
+}
