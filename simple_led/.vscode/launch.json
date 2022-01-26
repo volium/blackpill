@@ -38,6 +38,13 @@
                 "-vvvvvvv",
                 "-Lpyocd.core.*=debug"
             ]
+        },
+        {
+            "type": "fb-python",
+            "request": "launch",
+            "name": "Launch a python script",
+            "program": "${file}",
+            "console": "internalConsole",
         }
     ]
 }
