@@ -29,14 +29,14 @@
             "showDevDebugOutput": true,
             "interface": "swd",
             "serverpath": "/usr/local/opt/python@3.10/Frameworks/Python.framework/Versions/3.10/bin/pyocd",
-            "device": "stm32f411",
             "runToEntryPoint": "main",
-            "runToMain": true,
             "svdFile": "${workspaceFolder}/STM32F411.svd",
-            // NOTE: These are super important to get proper line-by-line debugging
+            // NOTE: This is super important to get proper line-by-line debugging
+            "targetId": "stm32f411ce",
+            // "device": "stm32f411ce" // for pyOCD this doesn't do anything (file bug?)
             "serverArgs": [
-                "--target",
-                "stm32f411ce"
+                "-vvvvvvv",
+                "-Lpyocd.core.*=debug"
             ]
         }
     ]
