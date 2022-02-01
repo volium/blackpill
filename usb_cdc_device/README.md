@@ -2,6 +2,10 @@
 
 - `make <clean>`
 
+## Run Instructions
+
+- `screen /dev/cu.<USB_INSTANCE>`
+- Characters typed should be echoed right back
 
 ## Flashing instructions
 
