@@ -26,9 +26,10 @@
             "request": "launch",
             "executable": "./build/simple_led.elf",
             "servertype": "pyocd",
-            "showDevDebugOutput": true,
+            "showDevDebugOutput": "none",
             "interface": "swd",
-            "serverpath": "/usr/local/opt/python@3.10/Frameworks/Python.framework/Versions/3.10/bin/pyocd",
+            // NOTE: if pyocd is not in the PATH, the full PATH can be specified here. 
+            // "serverpath": "/path/to/pyocd",
             "runToEntryPoint": "main",
             "svdFile": "${workspaceFolder}/STM32F411.svd",
             // NOTE: This is super important to get proper line-by-line debugging
