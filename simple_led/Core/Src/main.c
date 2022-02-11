@@ -41,6 +41,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint32_t delay = 1000;
 int32_t test_variable = 4000;
 /* USER CODE END PV */
 
@@ -93,7 +94,7 @@ int main(void)
   while (1)
   {
     HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
-    HAL_Delay(1000);
+    HAL_Delay(delay);
     test_variable--;
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
