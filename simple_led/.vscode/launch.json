@@ -11,6 +11,7 @@
             "request": "launch",
             "executable": "./build/simple_led.elf",
             "servertype": "openocd",
+            "showDevDebugOutput": "both",
             "interface": "swd",
             "runToEntryPoint": "main",
             "configFiles": [
@@ -26,7 +27,7 @@
             "request": "launch",
             "executable": "./build/simple_led.elf",
             "servertype": "pyocd",
-            "showDevDebugOutput": "none",
+            "showDevDebugOutput": "both",
             "interface": "swd",
             // NOTE: if pyocd is not in the PATH, the full PATH can be specified here. 
             // "serverpath": "/path/to/pyocd",
