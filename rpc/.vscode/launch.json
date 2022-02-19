@@ -1,0 +1,54 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (openocd)",
+            "type": "cortex-debug",
+            "cwd": "${workspaceRoot}",
+            "request": "launch",
+            "executable": "./build/rpc.elf",
+            "servertype": "openocd",
+            "showDevDebugOutput": "both",
+            "interface": "swd",
+            "runToEntryPoint": "main",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f4x.cfg"
+            ],
+            "svdFile": "${workspaceFolder}/STM32F411.svd",
+        },
+        {
+            "name": "Debug (pyocd)",
+            "type": "cortex-debug",
+            "cwd": "${workspaceRoot}",
+            "request": "launch",
+            "executable": "./build/rpc.elf",
+            "servertype": "pyocd",
+            "showDevDebugOutput": "both",
+            "interface": "swd",
+            // NOTE: if pyocd is not in the PATH, the full PATH can be specified here.
+            // "serverpath": "/path/to/pyocd",
+            "runToEntryPoint": "main",
+            "svdFile": "${workspaceFolder}/STM32F411.svd",
+            // NOTE: This is super important to get proper line-by-line debugging
+            "targetId": "stm32f411ce",
+            // "device": "stm32f411ce" // for pyOCD this doesn't do anything (file bug?)
+            "serverArgs": [
+                "-vvvvvvv",
+                "-Lpyocd.core.*=debug"
+            ]
+        },
+        {
+            "type": "python",
+            "request": "launch",
+            "name": "Launch a python script",
+            "program": "${file}",
+            "console": "internalConsole",
+            "justMyCode": false,
+            "args": ["build/rpc.elf"]
+        }
+    ]
+}
