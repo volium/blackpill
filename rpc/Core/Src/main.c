@@ -296,7 +296,7 @@ uint16_t add(uint16_t a, uint16_t b)
 uint16_t setLed(uint8_t ledSetting)
 {
   HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, ledSetting);
-  return (uint16_t) 76U;
+  return (uint16_t) ledSetting;
 }
 
 char* returnCharPtr(uint32_t** long_to_long_array){

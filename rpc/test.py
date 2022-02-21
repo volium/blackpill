@@ -73,6 +73,13 @@ for i in range(100):
     connection.write(struct.pack('B', led))
     r_value = struct.unpack('<h', connection.read(2))[0]
     print(f"Result of setLed = {r_value}\n")
-    assert int(r_value) == 76, f"r_value has unexpected value {r_value}"
+    assert int(r_value) == led, f"r_value has unexpected value {r_value}"
 
     time.sleep(0.045)
+
+# Turn off LED
+connection.write(struct.pack('B', 0x03))
+connection.write(struct.pack('B', 0x1))
+r_value = struct.unpack('<h', connection.read(2))[0]
+print(f"Result of setLed = {r_value}\n")
+assert int(r_value) == 0x1, f"r_value has unexpected value {r_value}"
