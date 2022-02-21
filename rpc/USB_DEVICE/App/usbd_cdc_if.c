@@ -62,8 +62,6 @@
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
 
-#define HL_RX_BUFFER_SIZE 512
-
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -100,9 +98,17 @@ uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 uint8_t badValues[2];
 uint16_t badValuesW[2];
 uint8_t lcBuffer[7]; // Line coding buffer
-uint8_t rxBuffer[HL_RX_BUFFER_SIZE]; // Receive buffer
-volatile uint16_t rxBufferHeadPos = 0; // Receive buffer write position
-volatile uint16_t rxBufferTailPos = 0; // Receive buffer read position
+
+#define  FIFO_SIZE 512  // must be 2^N
+#define FIFO_INCR(x) (((x)+1)&((FIFO_SIZE)-1))
+typedef struct FIFO
+{
+  volatile uint32_t head;
+  volatile uint32_t tail;
+  uint8_t data[FIFO_SIZE];
+} FIFO;
+
+FIFO RX_FIFO = {.head=0, .tail=0};
 
 /* USER CODE END PRIVATE_VARIABLES */
 
@@ -297,23 +303,31 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+  uint32_t len=*Len;
+  if(hUsbDeviceFS.dev_state != USBD_STATE_CONFIGURED)
+    return USBD_FAIL;
+  if(((Buf == NULL) || (Len == NULL)))
+    return USBD_FAIL;
 
-  uint8_t len = (uint8_t) *Len; // Get length
-  uint16_t tempHeadPos = rxBufferHeadPos; // Increment temp head pos while writing, then update main variable when complete
-
-  for (uint32_t i = 0; i < len; i++) {
-    rxBuffer[tempHeadPos] = Buf[i];
-    tempHeadPos = (uint16_t)((uint16_t)(tempHeadPos + 1) % HL_RX_BUFFER_SIZE);
-    if (tempHeadPos == rxBufferTailPos) {
-      return USBD_FAIL;
+  uint8_t* ptr = Buf;
+  // add data to FIFO
+  while (len--)
+    if(FIFO_INCR(RX_FIFO.head)==RX_FIFO.tail){
+      return USBD_FAIL;  // overrun
+    } else {
+      // RX_FIFO.data[RX_FIFO.head]=*Buf++; This causes a Hardfault... why?!!!
+      RX_FIFO.data[RX_FIFO.head]=*ptr++;
+      RX_FIFO.head=FIFO_INCR(RX_FIFO.head);
     }
+  uint8_t result = USBD_OK;
+  do {
+    result = USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   }
-
-  rxBufferHeadPos = tempHeadPos;
-
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-
+  while(result != USBD_OK);
+  do {
+    result = USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+  }
+  while(result != USBD_OK);
   return (USBD_OK);
   /* USER CODE END 6 */
 }
@@ -370,42 +384,20 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 
 uint8_t CDC_ReadRxBuffer_FS(uint8_t* Buf, uint16_t Len)
 {
-  uint16_t bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
-
-  if (bytesAvailable < Len)
-    return USB_CDC_RX_BUFFER_NO_DATA;
-
-  for (uint8_t i = 0; i < Len; i++) {
-    uint8_t t = rxBuffer[rxBufferTailPos];
-    Buf[i] = t;
-    rxBufferTailPos = (uint16_t)((uint16_t)(rxBufferTailPos + 1) % HL_RX_BUFFER_SIZE);
+  uint32_t count=0;
+  /* Check inputs */
+  if ((Buf == NULL) || (Len == 0)) {
+    return 0;
   }
 
-  return USB_CDC_RX_BUFFER_OK;
-}
-
-uint16_t CDC_ReadRxBuffer_FS_test(uint8_t* Buf, uint16_t Len)
-{
-  uint16_t bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
-
-  if (bytesAvailable < Len)
-    return USB_CDC_RX_BUFFER_NO_DATA;
-
-  for (uint8_t i = 0; i < Len; i++) {
-    uint8_t t = rxBuffer[rxBufferTailPos];
-    if(Len == 2)
-    {
-      badValues[i] = t;
-    }
-    Buf[i] = t;
-    rxBufferTailPos = (uint16_t)((uint16_t)(rxBufferTailPos + 1) % HL_RX_BUFFER_SIZE);
+  while (Len--) {
+    if (RX_FIFO.head==RX_FIFO.tail) return count;
+    count++;
+    *Buf++=RX_FIFO.data[RX_FIFO.tail];
+    RX_FIFO.tail=FIFO_INCR(RX_FIFO.tail);
   }
 
-  uint16_t * test_ptr = (uint16_t*) Buf;
-  uint16_t test = *test_ptr;
-  badValuesW[0] = test;
-
-  return test;
+  return count;
 }
 
 uint8_t CDC_PeekRxBuffer_FS(uint8_t* Buf, uint16_t Len)
@@ -416,23 +408,24 @@ uint8_t CDC_PeekRxBuffer_FS(uint8_t* Buf, uint16_t Len)
     return USB_CDC_RX_BUFFER_NO_DATA;
 
   for (uint8_t i = 0; i < Len; i++) {
-    Buf[i] = rxBuffer[(rxBufferTailPos + i) % HL_RX_BUFFER_SIZE]; // Get data without incrementing the tail position
+    Buf[i] = RX_FIFO.data[(RX_FIFO.tail + i) % HL_RX_BUFFER_SIZE]; // Get data without incrementing the tail position
   }
 
   return USB_CDC_RX_BUFFER_OK;
 }
 
+
 uint16_t CDC_GetRxBufferBytesAvailable_FS()
 {
-  return (uint16_t)(rxBufferHeadPos - rxBufferTailPos) % HL_RX_BUFFER_SIZE;
+  return (uint16_t)(RX_FIFO.head - RX_FIFO.tail) % FIFO_SIZE;
 }
 
 void CDC_FlushRxBuffer_FS()
 {
-  memset(rxBuffer, 0, sizeof(rxBuffer));
+  memset(RX_FIFO.data, 0, sizeof(FIFO_SIZE));
 
-  rxBufferHeadPos = 0;
-  rxBufferTailPos = 0;
+  RX_FIFO.head = 0;
+  RX_FIFO.tail = 0;
 }
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
