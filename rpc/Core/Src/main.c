@@ -99,6 +99,10 @@ int main(void)
   // float fValue = 0.0f;
   uint16_t bytesAvailable = 0;
   uint8_t mirror[128];
+  uint8_t tx_status=0;
+  uint32_t max_tx_busy_cnt=0;
+  uint32_t tx_busy_cnt=0;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -129,7 +133,17 @@ int main(void)
       // uint8_t data = 0xFF;
       // CDC_ReadRxBuffer_FS(data, sizeof(data));
       CDC_ReadRxBuffer_FS(mirror, bytesAvailable);
-      CDC_Transmit_FS(mirror, bytesAvailable);
+      tx_busy_cnt = 0;
+      do {
+        tx_status = CDC_Transmit_FS(mirror, bytesAvailable);
+        tx_busy_cnt++;
+      }
+      while (tx_status == USBD_BUSY);
+      if(tx_busy_cnt > 1) {
+        if (tx_busy_cnt > max_tx_busy_cnt) {
+          max_tx_busy_cnt = tx_busy_cnt;
+        }
+      }
       // switch (data) {
       //   case 0x00:
       //     testIntResult = testInt();

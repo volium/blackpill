@@ -14,7 +14,7 @@ connection = serial.Serial('/dev/cu.usbmodem3777386930301')  # open serial port
 # connection.write(struct.pack('B', 0x01))
 # print(struct.unpack('<f', connection.read(4))[0])
 
-for i in range(20):
+for i in range(1000):
     print(f"\n\nIteration {i}")
     nums = [x for x in range(128)]
     nums_array = array.array('B', nums)
