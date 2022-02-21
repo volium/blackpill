@@ -408,7 +408,7 @@ uint8_t CDC_PeekRxBuffer_FS(uint8_t* Buf, uint16_t Len)
     return USB_CDC_RX_BUFFER_NO_DATA;
 
   for (uint8_t i = 0; i < Len; i++) {
-    Buf[i] = RX_FIFO.data[(RX_FIFO.tail + i) % HL_RX_BUFFER_SIZE]; // Get data without incrementing the tail position
+    Buf[i] = RX_FIFO.data[(RX_FIFO.tail + i) % sizeof(FIFO_SIZE)]; // Get data without incrementing the tail position
   }
 
   return USB_CDC_RX_BUFFER_OK;
