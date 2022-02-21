@@ -6,81 +6,73 @@ import time
 
 connection = serial.Serial('/dev/cu.usbmodem3777386930301')  # open serial port
 
-# # Call the testInt() function.
-# connection.write(struct.pack('B', 0x00))
-# print(struct.unpack('<h', connection.read(2))[0])
+# # TEST FOR CDC
+# for i in range(1000):
 
-# # Call the testFloat() function.
-# connection.write(struct.pack('B', 0x01))
-# print(struct.unpack('<f', connection.read(4))[0])
+#     print(f"\n\nIteration {i}")
+#     nums = [x for x in range(128)]
+#     nums_array = array.array('B', nums)
+#     print(f"nums = {nums}")
+#     connection.write(nums_array)
 
-for i in range(1000):
-    print(f"\n\nIteration {i}")
-    nums = [x for x in range(128)]
-    nums_array = array.array('B', nums)
-    print(f"nums = {nums}")
-    connection.write(nums_array)
+#     # for i in nums:
+#     #     connection.write(struct.pack('B', i))
 
-    half_one = list(struct.unpack('<64B', bytearray(connection.read(64))))
-    print(f"half_one = {half_one}")
-    half_two = list(struct.unpack('<64B', bytearray(connection.read(64))))
-    print(f"half_two = {half_two}")
+#     # half_one = []
+#     # half_two = []
+#     # for i in nums:
+#     #     half_one.append(struct.unpack('<B', connection.read(1))[0])
+#     #     print(half_one)
 
-    values = half_one + half_two
+#     # print("done half one")
 
-    assert nums == values, "Lists are different"
+#     # for i in nums:
+#     #     half_two.append(struct.unpack('<B', connection.read(1))[0])
+#     #     print(half_two)
 
-# Call the add() function.
-# connection.write(struct.pack('B', 0x02))
-# connection.write(struct.pack('<h', 5))
-# connection.write(struct.pack('<h', 6))
-# r_value = struct.unpack('<h', connection.read(2))[0]
-# print(f"0x{r_value:08x}")
-# print(f"Result of add = {r_value}\n")
+#     # print("done half two")
 
-# # Call the testInt() function.
-# connection.write(struct.pack('B', 0x00))
-# print(f"Result of testInt = {struct.unpack('<h', connection.read(2))[0]}\n")
+#     half_one = list(struct.unpack('<64B', bytearray(connection.read(64))))
+#     print(f"half_one = {half_one}")
+#     half_two = list(struct.unpack('<64B', bytearray(connection.read(64))))
+#     print(f"half_two = {half_two}")
 
-# # Call the add() function.
-# connection.write(struct.pack('B', 0x02))
-# connection.write(struct.pack('<h', 8))
-# connection.write(struct.pack('<h', 10))
-# r_value = struct.unpack('<h', connection.read(2))[0]
-# print(f"0x{r_value:08x}")
-# print(f"Result of add = {r_value}\n")
+#     values = half_one + half_two
 
-# Call the setLed() function.
-# connection.write(struct.pack('B', 0x03))
-# connection.write(struct.pack('B', 18))
-# print(struct.unpack('<h', connection.read(2))[0])
+#     assert nums == values, "Lists are different"
+# # TEST FOR CDC
 
-# while True:
-#     # Call the setLed() function.
-#     connection.write(struct.pack('B', 0x03))
-#     connection.write(struct.pack('B', 15))
-#     print(struct.unpack('<h', connection.read(2))[0])
+led = 0
+for i in range(100):
 
-#     time.sleep(1)
+    print(f"Iteration {i}")
 
-#     # Call the setLed() function.
-#     connection.write(struct.pack('B', 0x03))
-#     connection.write(struct.pack('B', 0))
-#     print(struct.unpack('<h', connection.read(2))[0])
+    # Call the testInt() function.
+    connection.write(struct.pack('B', 0x00))
+    r_value = struct.unpack('<h', connection.read(2))[0]
+    print(f"Result of testInt = {r_value}\n")
+    assert int(r_value) == 42, f"r_value has unexpected value {r_value}"
 
-# import time
-# from simple_rpc import Interface
+    # Call the testFloat() function.
+    connection.write(struct.pack('B', 0x01))
+    r_value = struct.unpack('<f', connection.read(4))[0]
+    print(f"Result of testFloat = {r_value}\n")
+    assert float(r_value) == 3.1415927410125732, f"r_value has unexpected value {r_value}"
 
-# interface = Interface("/dev/tty.usbmodem4103")
-# # print(list(interface.device['methods']))
+    # Call the add() function.
+    connection.write(struct.pack('B', 0x02))
+    connection.write(struct.pack('<h', 5))
+    connection.write(struct.pack('<h', 6))
+    r_value = struct.unpack('<h', connection.read(2))[0]
+    print(f"Result of add = {r_value}\n")
+    assert int(r_value) == 11, f"r_value has unexpected value {r_value}"
 
-# add = interface.add(7+2)
+    # Call the setLed() function.
+    led = not led;
+    connection.write(struct.pack('B', 0x03))
+    connection.write(struct.pack('B', led))
+    r_value = struct.unpack('<h', connection.read(2))[0]
+    print(f"Result of setLed = {r_value}\n")
+    assert int(r_value) == 76, f"r_value has unexpected value {r_value}"
 
-# print(add)
-
-# led = 0
-
-# while True:
-#     led = not led
-#     interface.set_led(led)
-#     time.sleep(1)
+    time.sleep(0.045)

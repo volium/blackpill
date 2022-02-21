@@ -94,10 +94,10 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
-  // uint8_t ledSetting = 0;
-  // uint16_t iValue, iParamA, iParamB = 0;
-  // float fValue = 0.0f;
-  uint16_t bytesAvailable = 0;
+  uint8_t ledSetting = 0;
+  uint16_t iValue = 0;
+  float fValue = 0.0f;
+  volatile uint16_t bytesAvailable = 0;
   uint8_t mirror[128];
   uint8_t tx_status=0;
   uint32_t max_tx_busy_cnt=0;
@@ -114,63 +114,76 @@ int main(void)
     // HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
     // HAL_Delay(1000);
 
-    // uint16_t bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
-    // printf("Avilable bytes = %d", bytesAvailable);
-    // if (bytesAvailable > 0) {
-    //     uint16_t bytesToRead = bytesAvailable >= 8 ? 8 : bytesAvailable;
-	  //   if (CDC_ReadRxBuffer_FS(rxData, bytesToRead) == USB_CDC_RX_BUFFER_OK) {
-	  //       while (CDC_Transmit_FS(rxData, bytesToRead) == USBD_BUSY);
-    //     }
-    // }
 
-
-    uint16_t testIntResult = 0;
-    uint16_t addParamA = 0;
-    uint16_t addParamB = 0;
-    uint16_t addResult = 0;
+    volatile uint16_t testIntResult = 0;
+    volatile uint16_t addParamA = 0;
+    volatile uint16_t addParamB = 0;
+    volatile uint16_t addResult = 0;
     bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
     if (bytesAvailable) {
-      // uint8_t data = 0xFF;
-      // CDC_ReadRxBuffer_FS(data, sizeof(data));
-      CDC_ReadRxBuffer_FS(mirror, bytesAvailable);
-      tx_busy_cnt = 0;
-      do {
-        tx_status = CDC_Transmit_FS(mirror, bytesAvailable);
-        tx_busy_cnt++;
-      }
-      while (tx_status == USBD_BUSY);
-      if(tx_busy_cnt > 1) {
-        if (tx_busy_cnt > max_tx_busy_cnt) {
-          max_tx_busy_cnt = tx_busy_cnt;
-        }
-      }
-      // switch (data) {
-      //   case 0x00:
-      //     testIntResult = testInt();
-      //     CDC_Transmit_FS((uint8_t*)&testIntResult, sizeof(testIntResult));
-      //     break;
-      //   // case 0x01:
-      //   //   fValue = testFloat();
-      //   //   CDC_Transmit_FS((uint8_t*)&fValue, 4);
-      //   //   break;
-      //   case 0x02:
-      //     CDC_ReadRxBuffer_FS((uint8_t*)&addParamA, sizeof(addParamA));
-      //     CDC_ReadRxBuffer_FS_test((uint8_t*)&addParamB, sizeof(addParamB));
-      //     // printf("%d", value);
-      //     addResult = add(addParamA, addParamB);
-      //     // iValue += 12;
-      //     CDC_Transmit_FS((uint8_t*)&addResult, sizeof(addResult));
-      //     break;
-      //   // case 0x03:
-      //   //   CDC_ReadRxBuffer_FS((uint8_t*)&ledSetting, 1);
-      //   //   iValue = setLed(ledSetting);
-      //   //   CDC_Transmit_FS((uint8_t*)&iValue, 2);
-      //   //   break;
-      //   default:
 
-      //     break;
-      //     // printf("Unsupported function");
+      uint8_t data = 0xFF;
+      CDC_ReadRxBuffer_FS(&data, sizeof(data));
+
+      switch (data) {
+        case 0x00:
+          testIntResult = testInt();
+          do {
+            tx_status = CDC_Transmit_FS((uint8_t*)&testIntResult, sizeof(testIntResult));
+          }
+          while (tx_status != USBD_OK);
+          break;
+        case 0x01:
+          fValue = testFloat();
+          do {
+            tx_status = CDC_Transmit_FS((uint8_t*)&fValue, sizeof(fValue));
+          }
+          while (tx_status != USBD_OK);
+          break;
+        case 0x02:
+          do{
+            bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
+          }
+          while (bytesAvailable < 4);
+          CDC_ReadRxBuffer_FS((uint8_t*)&addParamA, sizeof(addParamA));
+          CDC_ReadRxBuffer_FS((uint8_t*)&addParamB, sizeof(addParamB));
+          addResult = add(addParamA, addParamB);
+          do {
+            tx_status = CDC_Transmit_FS((uint8_t*)&addResult, sizeof(addResult));
+          }
+          while (tx_status != USBD_OK);
+          break;
+        case 0x03:
+          do{
+            bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
+          }
+          while (bytesAvailable < 1);
+          CDC_ReadRxBuffer_FS((uint8_t*)&ledSetting, sizeof(ledSetting));
+          iValue = setLed(ledSetting);
+          do {
+            tx_status = CDC_Transmit_FS((uint8_t*)&iValue, sizeof(iValue));
+          }
+          while (tx_status != USBD_OK);
+          break;
+        default:
+          break;
+      }
+
+      // // TEST FOR CDC
+      // CDC_ReadRxBuffer_FS(mirror, bytesAvailable);
+      // tx_busy_cnt = 0;
+      // do {
+      //   tx_status = CDC_Transmit_FS(mirror, bytesAvailable);
+      //   tx_busy_cnt++;
       // }
+      // while (tx_status == USBD_BUSY);
+      // if(tx_busy_cnt > 1) {
+      //   if (tx_busy_cnt > max_tx_busy_cnt) {
+      //     max_tx_busy_cnt = tx_busy_cnt;
+      //   }
+      // }
+      // // TEST FOR CDC
+
     }
 
     /* USER CODE END WHILE */
@@ -282,7 +295,7 @@ uint16_t add(uint16_t a, uint16_t b)
 
 uint16_t setLed(uint8_t ledSetting)
 {
-  HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, ledSetting == 18U ? GPIO_PIN_RESET : GPIO_PIN_SET);
+  HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, ledSetting);
   return (uint16_t) 76U;
 }
 
