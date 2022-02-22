@@ -315,19 +315,21 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
     if(FIFO_INCR(RX_FIFO.head)==RX_FIFO.tail){
       return USBD_FAIL;  // overrun
     } else {
-      // RX_FIFO.data[RX_FIFO.head]=*Buf++; This causes a Hardfault... why?!!!
       RX_FIFO.data[RX_FIFO.head]=*ptr++;
       RX_FIFO.head=FIFO_INCR(RX_FIFO.head);
     }
+
   uint8_t result = USBD_OK;
   do {
     result = USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   }
   while(result != USBD_OK);
+
   do {
     result = USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   }
   while(result != USBD_OK);
+
   return (USBD_OK);
   /* USER CODE END 6 */
 }

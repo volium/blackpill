@@ -6,80 +6,67 @@ import time
 
 connection = serial.Serial('/dev/cu.usbmodem3777386930301')  # open serial port
 
-# # TEST FOR CDC
-# for i in range(1000):
+# TEST FOR CDC
+for i in range(1000):
 
-#     print(f"\n\nIteration {i}")
-#     nums = [x for x in range(128)]
-#     nums_array = array.array('B', nums)
-#     print(f"nums = {nums}")
-#     connection.write(nums_array)
+    print(f"\n\nIteration {i}")
+    nums = [x for x in range(128)]
+    nums_array = array.array('B', nums)
+    print(f"nums = {nums}")
+    connection.write(nums_array)
 
-#     # for i in nums:
-#     #     connection.write(struct.pack('B', i))
+    half_one = list(struct.unpack('<64B', bytearray(connection.read(64))))
+    print(f"half_one = {half_one}")
+    half_two = list(struct.unpack('<64B', bytearray(connection.read(64))))
+    print(f"half_two = {half_two}")
 
-#     # half_one = []
-#     # half_two = []
-#     # for i in nums:
-#     #     half_one.append(struct.unpack('<B', connection.read(1))[0])
-#     #     print(half_one)
+    values = half_one + half_two
 
-#     # print("done half one")
+    assert nums == values, "Lists are different"
+# TEST FOR CDC
 
-#     # for i in nums:
-#     #     half_two.append(struct.unpack('<B', connection.read(1))[0])
-#     #     print(half_two)
+# # TEST FOR RPC
 
-#     # print("done half two")
+# led = 0
+# for i in range(100):
 
-#     half_one = list(struct.unpack('<64B', bytearray(connection.read(64))))
-#     print(f"half_one = {half_one}")
-#     half_two = list(struct.unpack('<64B', bytearray(connection.read(64))))
-#     print(f"half_two = {half_two}")
+#     print(f"Iteration {i}")
 
-#     values = half_one + half_two
+#     # Call the testInt() function.
+#     connection.write(struct.pack('B', 0x00))
+#     r_value = struct.unpack('<h', connection.read(2))[0]
+#     print(f"Result of testInt = {r_value}\n")
+#     assert int(r_value) == 42, f"r_value has unexpected value {r_value}"
 
-#     assert nums == values, "Lists are different"
-# # TEST FOR CDC
+#     # Call the testFloat() function.
+#     connection.write(struct.pack('B', 0x01))
+#     r_value = struct.unpack('<f', connection.read(4))[0]
+#     print(f"Result of testFloat = {r_value}\n")
+#     assert float(r_value) == 3.1415927410125732, f"r_value has unexpected value {r_value}"
 
-led = 0
-for i in range(100):
+#     # Call the add() function.
+#     connection.write(struct.pack('B', 0x02))
+#     connection.write(struct.pack('<h', 5))
+#     connection.write(struct.pack('<h', 6))
+#     r_value = struct.unpack('<h', connection.read(2))[0]
+#     print(f"Result of add = {r_value}\n")
+#     assert int(r_value) == 11, f"r_value has unexpected value {r_value}"
 
-    print(f"Iteration {i}")
+#     # Call the setLed() function.
+#     led = not led;
+#     connection.write(struct.pack('B', 0x03))
+#     connection.write(struct.pack('B', led))
+#     r_value = struct.unpack('<h', connection.read(2))[0]
+#     print(f"Result of setLed = {r_value}\n")
+#     assert int(r_value) == led, f"r_value has unexpected value {r_value}"
 
-    # Call the testInt() function.
-    connection.write(struct.pack('B', 0x00))
-    r_value = struct.unpack('<h', connection.read(2))[0]
-    print(f"Result of testInt = {r_value}\n")
-    assert int(r_value) == 42, f"r_value has unexpected value {r_value}"
+#     time.sleep(0.045)
 
-    # Call the testFloat() function.
-    connection.write(struct.pack('B', 0x01))
-    r_value = struct.unpack('<f', connection.read(4))[0]
-    print(f"Result of testFloat = {r_value}\n")
-    assert float(r_value) == 3.1415927410125732, f"r_value has unexpected value {r_value}"
+# # Turn off LED
+# connection.write(struct.pack('B', 0x03))
+# connection.write(struct.pack('B', 0x1))
+# r_value = struct.unpack('<h', connection.read(2))[0]
+# print(f"Result of setLed = {r_value}\n")
+# assert int(r_value) == 0x1, f"r_value has unexpected value {r_value}"
 
-    # Call the add() function.
-    connection.write(struct.pack('B', 0x02))
-    connection.write(struct.pack('<h', 5))
-    connection.write(struct.pack('<h', 6))
-    r_value = struct.unpack('<h', connection.read(2))[0]
-    print(f"Result of add = {r_value}\n")
-    assert int(r_value) == 11, f"r_value has unexpected value {r_value}"
-
-    # Call the setLed() function.
-    led = not led;
-    connection.write(struct.pack('B', 0x03))
-    connection.write(struct.pack('B', led))
-    r_value = struct.unpack('<h', connection.read(2))[0]
-    print(f"Result of setLed = {r_value}\n")
-    assert int(r_value) == led, f"r_value has unexpected value {r_value}"
-
-    time.sleep(0.045)
-
-# Turn off LED
-connection.write(struct.pack('B', 0x03))
-connection.write(struct.pack('B', 0x1))
-r_value = struct.unpack('<h', connection.read(2))[0]
-print(f"Result of setLed = {r_value}\n")
-assert int(r_value) == 0x1, f"r_value has unexpected value {r_value}"
+# # TEST FOR RPC

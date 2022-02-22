@@ -122,67 +122,68 @@ int main(void)
     bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
     if (bytesAvailable) {
 
-      uint8_t data = 0xFF;
-      CDC_ReadRxBuffer_FS(&data, sizeof(data));
+      // // TEST FOR RPC
+      // uint8_t data = 0xFF;
+      // CDC_ReadRxBuffer_FS(&data, sizeof(data));
+      // switch (data) {
+      //   case 0x00:
+      //     testIntResult = testInt();
+      //     do {
+      //       tx_status = CDC_Transmit_FS((uint8_t*)&testIntResult, sizeof(testIntResult));
+      //     }
+      //     while (tx_status != USBD_OK);
+      //     break;
+      //   case 0x01:
+      //     fValue = testFloat();
+      //     do {
+      //       tx_status = CDC_Transmit_FS((uint8_t*)&fValue, sizeof(fValue));
+      //     }
+      //     while (tx_status != USBD_OK);
+      //     break;
+      //   case 0x02:
+      //     do{
+      //       bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
+      //     }
+      //     while (bytesAvailable < 4);
+      //     CDC_ReadRxBuffer_FS((uint8_t*)&addParamA, sizeof(addParamA));
+      //     CDC_ReadRxBuffer_FS((uint8_t*)&addParamB, sizeof(addParamB));
+      //     addResult = add(addParamA, addParamB);
+      //     do {
+      //       tx_status = CDC_Transmit_FS((uint8_t*)&addResult, sizeof(addResult));
+      //     }
+      //     while (tx_status != USBD_OK);
+      //     break;
+      //   case 0x03:
+      //     do{
+      //       bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
+      //     }
+      //     while (bytesAvailable < 1);
+      //     CDC_ReadRxBuffer_FS((uint8_t*)&ledSetting, sizeof(ledSetting));
+      //     iValue = setLed(ledSetting);
+      //     do {
+      //       tx_status = CDC_Transmit_FS((uint8_t*)&iValue, sizeof(iValue));
+      //     }
+      //     while (tx_status != USBD_OK);
+      //     break;
+      //   default:
+      //     break;
+      // }
+      // // TEST FOR RPC
 
-      switch (data) {
-        case 0x00:
-          testIntResult = testInt();
-          do {
-            tx_status = CDC_Transmit_FS((uint8_t*)&testIntResult, sizeof(testIntResult));
-          }
-          while (tx_status != USBD_OK);
-          break;
-        case 0x01:
-          fValue = testFloat();
-          do {
-            tx_status = CDC_Transmit_FS((uint8_t*)&fValue, sizeof(fValue));
-          }
-          while (tx_status != USBD_OK);
-          break;
-        case 0x02:
-          do{
-            bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
-          }
-          while (bytesAvailable < 4);
-          CDC_ReadRxBuffer_FS((uint8_t*)&addParamA, sizeof(addParamA));
-          CDC_ReadRxBuffer_FS((uint8_t*)&addParamB, sizeof(addParamB));
-          addResult = add(addParamA, addParamB);
-          do {
-            tx_status = CDC_Transmit_FS((uint8_t*)&addResult, sizeof(addResult));
-          }
-          while (tx_status != USBD_OK);
-          break;
-        case 0x03:
-          do{
-            bytesAvailable = CDC_GetRxBufferBytesAvailable_FS();
-          }
-          while (bytesAvailable < 1);
-          CDC_ReadRxBuffer_FS((uint8_t*)&ledSetting, sizeof(ledSetting));
-          iValue = setLed(ledSetting);
-          do {
-            tx_status = CDC_Transmit_FS((uint8_t*)&iValue, sizeof(iValue));
-          }
-          while (tx_status != USBD_OK);
-          break;
-        default:
-          break;
+      // TEST FOR CDC
+      CDC_ReadRxBuffer_FS(mirror, bytesAvailable);
+      tx_busy_cnt = 0;
+      do {
+        tx_status = CDC_Transmit_FS(mirror, bytesAvailable);
+        tx_busy_cnt++;
       }
-
-      // // TEST FOR CDC
-      // CDC_ReadRxBuffer_FS(mirror, bytesAvailable);
-      // tx_busy_cnt = 0;
-      // do {
-      //   tx_status = CDC_Transmit_FS(mirror, bytesAvailable);
-      //   tx_busy_cnt++;
-      // }
-      // while (tx_status == USBD_BUSY);
-      // if(tx_busy_cnt > 1) {
-      //   if (tx_busy_cnt > max_tx_busy_cnt) {
-      //     max_tx_busy_cnt = tx_busy_cnt;
-      //   }
-      // }
-      // // TEST FOR CDC
+      while (tx_status == USBD_BUSY);
+      if(tx_busy_cnt > 1) {
+        if (tx_busy_cnt > max_tx_busy_cnt) {
+          max_tx_busy_cnt = tx_busy_cnt;
+        }
+      }
+      // TEST FOR CDC
 
     }
 
