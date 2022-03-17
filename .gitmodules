@@ -1,0 +1,9 @@
+[submodule "zephyr/zephyr"]
+	path = zephyr/zephyr
+	url = https://github.com/zephyrproject-rtos/zephyr
+[submodule "zephyr/cmsis"]
+	path = zephyr/cmsis
+	url = git@github.com:zephyrproject-rtos/cmsis.git
+[submodule "zephyr/hal_stm32"]
+	path = zephyr/hal_stm32
+	url = git@github.com:zephyrproject-rtos/hal_stm32.git
